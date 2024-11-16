@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <link rel="icon" href="44.png" type="image/png">
+    <meta charset="UTF-8">
+    <title>환자 정보 시스템</title>
+    <style>
+        /* 기존 스타일 유지 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('ddd.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* 중앙이 아닌 상단 정렬 */
+            height: 100vh;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 1;
+        }
+
+        .box {
+            position: relative;
+            background-color: #f1f1f1;
+            width: 350px;
+            padding: 30px;
+            text-align: center;
+            z-index: 2;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 15px;
+            margin-top: 50px; /* 화면 상단에서 약간의 여백을 추가 */
+        }
+
+        .box h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        #submit {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #submit:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>환자 정보 시스템</h1>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="id">아이디</label>
+                <input type="text" id="id">
+            </div>
+            <div class="input-group">
+                <label for="pass">비밀번호</label>
+                <input type="password" id="pass">
+            </div>
+            <input type="submit" id="submit" value="로그인">
+        </form>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const userId = document.getElementById("id").value;
+            const userPass = document.getElementById("pass").value;
+
+            if (userId === "hu_1234" && userPass === "1234") {
+                alert("의사 로그인 성공! 환자 정보를 조회합니다.");
+                showPatientInfo("doctor");
+            } else if (userId === "hu_3456" && userPass === "1234") {
+                alert("간호사 로그인 성공! 환자 정보를 조회합니다.");
+                showPatientInfo("nurse");
+            } else {
+                alert("아이디 또는 비밀번호가 올바르지 않습니다.");
+            }
+        });
+
+        function showPatientInfo(role) {
+            const patientId = prompt("조회할 환자의 일련번호를 입력하세요:");
+
+            if (!patientId) {
+                alert("환자 일련번호를 입력해야 합니다.");
+                return;
+            }
+
+            fetch(`http://127.0.0.1:5000/get_patient_info?patient_id=${patientId}&role=${role}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log("서버 응답:", response);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+                .then(data => {
+                    console.log("받은 데이터:", data);
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        displayPatientInfo(data, role);
+                    }
+                })
+                .catch(error => {
+                    console.error("환자 정보를 불러오지 못했습니다:", error);
+                    alert("환자 정보를 불러오지 못했습니다.");
+                });
+        }
+        function displayPatientInfo(data, role) {
+            let infoHtml = `
+                <html>
+                <head>
+                <title>환자 정보 시스템</title>
+                    <style>
+                        body {
+            margin: 0;
+            padding: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* 중앙이 아닌 상단 정렬 */
+            height: 100vh;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+                       .content {
+    word-wrap: break-word;  /* 긴 단어가 화면을 넘지 않도록 */
+    overflow-wrap: break-word;  /* 긴 단어가 화면을 넘지 않도록 */
+    word-break: break-all;  /* 필요한 경우 텍스트가 자동으로 줄 바꿈되도록 */
+}
+
+                        h2 {
+                            color: #333;
+                            border-bottom: 1px solid #ccc;
+                            padding-bottom: 5px;
+                            margin-bottom: 20px;
+                        }
+                        p {
+                            font-size: 14px;
+                            color: #555;
+                            margin: 5px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="content">
+                        <h2>=== 환자정보 ===</h2>
+            `;
+        
+            // 기존 코드 유지하면서, infoHtml에 계속 내용을 추가합니다.
+            data.환자정보.forEach(info => {
+                infoHtml += `<p>일련번호: ${info.일련번호}</p>`;
+                infoHtml += `<p>성별: ${info.성별}</p>`;
+                if (info.사망_여부 !== undefined) {
+                    infoHtml += `<p>사망 여부: ${info.사망_여부}</p>`;
+                }
+            });
+        
+
+            if (role === "doctor") {
+                // 진단내역
+                infoHtml += `<h2>=== 진단내역 ===</h2>`;
+                data.진단내역.forEach(info => {
+                    infoHtml += `<p>진료 입원 일자: ${info.진료_입원_일자}</p>`;
+                    infoHtml += `<p>진단 질병 코드: ${info.진단_질병_코드}</p>`;
+                    infoHtml += `<p>진단 질병 명: ${info.진단_질병_명}</p>`;
+                });
+
+                // 검사처방
+                infoHtml += `<h2>=== 검사처방 ===</h2>`;
+                data.검사처방.forEach(info => {
+                    infoHtml += `<p>검사 항목 코드: ${info.검사_항목_코드}, 검사 항목 명: ${info.검사_항목_명}, 진료 나이: ${info.진료_나이}, 검사 결과: ${info['검사_결과(수치)']}</p>`;
+                });
+
+                // 약처방
+                infoHtml += `<h2>=== 약처방 ===</h2>`;
+                data.약처방.forEach(info => {
+                    infoHtml += `<p>처방코드: ${info['처방_코드']}, 성분명: ${info['성분_명']}, 처방일자: ${info['처방_일자']}</p>`;
+                });
+
+                // 간호정보
+                infoHtml += `<h2>=== 간호정보 ===</h2>`;
+                data.간호정보.forEach(info => {
+                    infoHtml += `<p>혈압: 수축기 ${info['혈압(수축기)']} / 이완기 ${info['혈압(이완기)']}</p>`;
+                    infoHtml += `<p>합병증: 고혈압 ${info['고혈압']}, 당뇨 ${info['당뇨']}, 심장질환 ${info['심장질환']}, 뇌졸중 ${info['뇌졸중']}, 고지혈증 ${info['고지혈증']}, 암 ${info['암']}</p>`;
+                });
+        
+                } else if (role === "nurse") {
+                     // 간호사-specific fields
+                    data.성별.forEach(info => {
+                        infoHtml += `<h3>=== 성별 ===</h3><p>${info['성별']}</p>`;
+                    });
+         
+                    data.간호정보.forEach(info => {
+                        infoHtml += `<h3>=== 간호정보 ===</h3>`;
+                        infoHtml += `<p>입원 일자: ${info['입원_일자']}</p>`;
+                        infoHtml += `<p>혈압: 수축기 ${info['혈압(수축기)']} mmHg, 이완기 ${info['혈압(이완기)']} mmHg</p>`;
+                        infoHtml += `<p>체온: ${info['체온']} °C</p>`;
+                        infoHtml += `<p>신장: ${info['신장']} cm</p>`;
+                        infoHtml += `<p>체중: ${info['체중']} kg</p>`;
+                        infoHtml += `<p>흡연 유무: ${info['흡연_유무']}</p>`;
+                    });
+                    infoHtml += `<h3>=== 약 처방 ===</h3>`;
+                    data.약처방.forEach(info => {
+                        infoHtml += `<p>처방 코드: ${info['처방_코드']} | 처방 일자: ${info['처방_일자']} | 성분명: ${info['성분_명']}</p>`;
+                    });
+    }
+    infoHtml += `
+    </div>
+    </body>
+    </html>
+    `;
+const newWindow = window.open("", "_blank");
+newWindow.document.write(`<html><body>${infoHtml}</body></html>`);
+newWindow.document.close();
+
+
+}
+</script>
+</body>
+</html>
